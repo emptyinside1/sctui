@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sc-tui"
+version = "0.1.0"
+description = "A Terminal User Interface for SoundCloud"
+authors = [
+    {name = "sc-tui author"}
+]
+dependencies = [
+    "textual",
+    "yt-dlp",
+    "python-mpv",
+    "platformdirs"
+]
+
+[project.scripts]
+sc-tui = "sc_tui.main:main"
