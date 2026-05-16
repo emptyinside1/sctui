@@ -13,7 +13,8 @@ dependencies = [
     "textual",
     "yt-dlp",
     "python-mpv",
-    "platformdirs"
+    "platformdirs",
+    "aiohttp"
 ]
 
 [project.scripts]

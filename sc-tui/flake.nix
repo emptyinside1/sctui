@@ -17,6 +17,7 @@
           yt-dlp
           python-mpv
           platformdirs
+          aiohttp
         ];
 
         native-deps = with pkgs; [
