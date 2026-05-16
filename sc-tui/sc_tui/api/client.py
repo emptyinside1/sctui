@@ -3,6 +3,7 @@ import json
 import yt_dlp
 from typing import List, Dict, Any, Optional
 from sc_tui.config import get_cache_db
+from sc_tui.config.settings import settings
 
 class SoundCloudAPI:
     """
@@ -10,16 +11,24 @@ class SoundCloudAPI:
     Supports caching, pagination concepts and user libraries.
     """
     def __init__(self):
-        self.base_opts = {
+        self.cache_file = get_cache_db()
+        self._cache = self._load_cache()
+
+    def _get_base_opts(self) -> Dict[str, Any]:
+        """Dynamically build opts based on current settings."""
+        opts = {
             'format': 'bestaudio/best',
             'quiet': True,
             'no_warnings': True,
-            # For authorized operations, we mock relying on browser cookies
-            # if user has Chrome/Firefox logged into Soundcloud.
-            'cookiesfrombrowser': ('chrome',),
         }
-        self.cache_file = get_cache_db()
-        self._cache = self._load_cache()
+
+        if settings.auth_method == "browser" and settings.auth_browser:
+            # e.g., ('chrome',) or ('firefox',)
+            opts['cookiesfrombrowser'] = (settings.auth_browser,)
+        elif settings.auth_method == "file" and settings.auth_cookie_file:
+            opts['cookiefile'] = settings.auth_cookie_file
+
+        return opts
 
     def _load_cache(self) -> Dict[str, Any]:
         if self.cache_file.exists():
@@ -44,7 +53,7 @@ class SoundCloudAPI:
             return self._cache[cache_key]
 
         def _search():
-            opts = self.base_opts.copy()
+            opts = self._get_base_opts()
             opts['extract_flat'] = True
 
             with yt_dlp.YoutubeDL(opts) as ydl:
@@ -68,13 +77,16 @@ class SoundCloudAPI:
 
     async def get_stream_url(self, track_url: str) -> Optional[str]:
         def _get_stream():
-            opts = self.base_opts.copy()
+            opts = self._get_base_opts()
             with yt_dlp.YoutubeDL(opts) as ydl:
                 try:
                     info = ydl.extract_info(track_url, download=False)
                     if info:
                         return info.get('url')
-                except Exception:
+                except Exception as e:
+                    print(f"Extraction error: {e}")
+                    # If extraction fails, sometimes yt-dlp fails due to broken cookies.
+                    # We might want to clear auth or warn the user.
                     return None
             return None
         return await asyncio.to_thread(_get_stream)
@@ -85,7 +97,7 @@ class SoundCloudAPI:
     async def get_likes(self, user_url: str) -> List[Dict[str, Any]]:
         """Fetch liked tracks for a user (via URL)."""
         def _fetch():
-            opts = self.base_opts.copy()
+            opts = self._get_base_opts()
             opts['extract_flat'] = True
             with yt_dlp.YoutubeDL(opts) as ydl:
                 try:

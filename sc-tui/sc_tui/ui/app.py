@@ -134,6 +134,7 @@ class ScTuiApp(App):
         Binding("G", "go_bottom", "Bottom", show=False),
         Binding("l", "like_track", "Like"),
         Binding("a", "add_to_playlist", "Add to Playlist"),
+        Binding("A", "auth_settings", "Auth Settings"),
     ]
 
     def __init__(self, *args, **kwargs):
@@ -297,12 +298,21 @@ class ScTuiApp(App):
                 self.player.queue.set_current_index(0)
                 await self._play_track(track)
 
-        elif self.current_view == "Queue":
-            self.player.queue.set_current_index(idx)
-            track = self.player.queue.get_current()
-            if track:
-                await self._play_track(track)
-                self._render_queue() # re-render to update the ▶ indicator
+        elif self.current_view in ["Queue", "My Likes"]:
+            if self.current_view == "Queue":
+                self.player.queue.set_current_index(idx)
+                track = self.player.queue.get_current()
+                if track:
+                    await self._play_track(track)
+                    self._render_queue() # re-render to update the ▶ indicator
+            else: # My Likes
+                track = self.current_results[idx]
+                self.player.queue.add(track)
+                self.notify(f"Added to queue: {track.get('title')}")
+
+                if self.player.queue.current_index == -1:
+                    self.player.queue.set_current_index(0)
+                    await self._play_track(track)
 
     async def _play_track(self, track: dict):
         self.bottom_player.track_title.update(f"⏳ {track.get('title')}")
@@ -396,3 +406,7 @@ class ScTuiApp(App):
                     self.notify(f"Added to playlist '{playlist_name}' (Mock)")
 
             self.push_screen(PlaylistModal(), handle_playlist_result)
+
+    def action_auth_settings(self) -> None:
+        from sc_tui.ui.components.auth_modal import AuthModal
+        self.push_screen(AuthModal())
