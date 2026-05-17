@@ -1,0 +1,5 @@
+textual
+yt-dlp
+python-mpv
+platformdirs
+aiohttp

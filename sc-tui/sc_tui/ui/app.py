@@ -325,7 +325,10 @@ class ScTuiApp(App):
             self.bottom_player.track_artist.update(track.get('uploader', 'Unknown'))
 
             dur = float(track.get('duration') or 0)
-            self.bottom_player.progress.total = dur
+            if dur > 0:
+                self.bottom_player.progress.total = dur
+            else:
+                self.bottom_player.progress.total = None
             self.bottom_player.time_total.update(self._format_time(dur))
             self.bottom_player.status_lbl.update("▶ Playing")
         else:

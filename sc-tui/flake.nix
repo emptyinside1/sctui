@@ -20,6 +20,10 @@
           aiohttp
         ];
 
+        build-deps = with pythonPackages; [
+          setuptools
+        ];
+
         native-deps = with pkgs; [
           mpv
           ffmpeg
@@ -33,6 +37,8 @@
 
           src = ./.;
 
+          nativeBuildInputs = build-deps;
+
           propagatedBuildInputs = sc-tui-deps;
 
           # NixOS specific: passing LD_LIBRARY_PATH for python-mpv
@@ -44,7 +50,13 @@
           meta = with pkgs.lib; {
             description = "Terminal User Interface for SoundCloud";
             license = licenses.mit;
+            mainProgram = "sc-tui";
           };
+        };
+
+        apps.default = {
+          type = "app";
+          program = "${self.packages.${system}.default}/bin/sc-tui";
         };
 
         devShells.default = pkgs.mkShell {
@@ -54,6 +66,7 @@
               yt-dlp
               python-mpv
               platformdirs
+              aiohttp
             ]))
           ] ++ native-deps;
 

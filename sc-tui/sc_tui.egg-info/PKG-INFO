@@ -1,0 +1,10 @@
+Metadata-Version: 2.4
+Name: sc-tui
+Version: 0.1.0
+Summary: A Terminal User Interface for SoundCloud
+Author: sc-tui author
+Requires-Dist: textual
+Requires-Dist: yt-dlp
+Requires-Dist: python-mpv
+Requires-Dist: platformdirs
+Requires-Dist: aiohttp
